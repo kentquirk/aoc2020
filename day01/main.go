@@ -37,18 +37,49 @@ func (i IntSet) Intersect(j IntSet) IntSet {
 const target = 2020
 
 func day1a(data IntSet) {
+	// make the difference set from target-each element
 	diffs := make(IntSet)
 	for d := range data {
 		diffs.Add(target - d)
 	}
+	// intersect it with the data
 	result := diffs.Intersect(data)
 
+	// there will be two results; multiply them
 	product := 1
 	for v := range result {
 		fmt.Println(v)
 		product *= v
 	}
 	fmt.Println(product)
+}
+
+func day1b(data IntSet) {
+	// This time, we have to find three elements that add to 2020, so we make the difference set from
+	// all combinations of two elements (that aren't the same element)
+	diffs := make(IntSet)
+	data2 := make(IntSet)
+	for d1 := range data {
+		for d2 := range data {
+			if d1 != d2 {
+				data2.Add(d1 + d2)
+			}
+		}
+	}
+	for d := range data2 {
+		diffs.Add(target - d)
+	}
+
+	result := diffs.Intersect(data)
+
+	// There will be 3 elements that add correctly so we just multiply them
+	product := 1
+	for v := range result {
+		fmt.Println(v)
+		product *= v
+	}
+	fmt.Println(product)
+
 }
 
 func main() {
@@ -70,4 +101,5 @@ func main() {
 		data.Add(n)
 	}
 	day1a(data)
+	day1b(data)
 }
