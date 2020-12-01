@@ -7,36 +7,44 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"golang.org/x/tools/container/intsets"
 )
 
-const target = 2020
+// IntSet is intended to store a set of integers
+type IntSet map[int]struct{}
 
-func copyAndApply(s *intsets.Sparse, fn func(int) (int, bool)) *intsets.Sparse {
-	// because set iteration is destructive, we make a copy
-	iterset := new(intsets.Sparse)
-	result := new(intsets.Sparse)
-	iterset.Copy(s)
+// Add puts an item in the set
+func (i *IntSet) Add(n int) {
+	(*i)[n] = struct{}{}
+}
 
-	var v int
-	for iterset.TakeMin(&v) {
-		if n, ok := fn(v); ok {
-			result.Insert(n)
+// Contains returns whether the value is in the set
+func (i IntSet) Contains(n int) bool {
+	_, ok := i[n]
+	return ok
+}
+
+// Intersect creates a new IntSet that is the intersection of i and j
+func (i IntSet) Intersect(j IntSet) IntSet {
+	result := make(IntSet)
+	for k := range i {
+		if j.Contains(k) {
+			result.Add(k)
 		}
 	}
 	return result
 }
 
-func day1a(data *intsets.Sparse) {
-	diffs := copyAndApply(data, func(v int) (int, bool) {
-		return target - v, true
-	})
+const target = 2020
 
-	diffs.IntersectionWith(data)
+func day1a(data IntSet) {
+	diffs := make(IntSet)
+	for d := range data {
+		diffs.Add(target - d)
+	}
+	result := diffs.Intersect(data)
+
 	product := 1
-	v := 0
-	for diffs.TakeMin(&v) {
+	for v := range result {
 		fmt.Println(v)
 		product *= v
 	}
@@ -53,13 +61,13 @@ func main() {
 		log.Fatal(err)
 	}
 	lines := strings.Split(string(b), "\n")
-	data := new(intsets.Sparse)
+	data := make(IntSet)
 	for _, line := range lines {
 		n, err := strconv.Atoi(line)
 		if err != nil {
 			log.Fatal(err)
 		}
-		data.Insert(n)
+		data.Add(n)
 	}
 	day1a(data)
 }
