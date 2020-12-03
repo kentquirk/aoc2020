@@ -36,7 +36,6 @@ func day03b(lines []string) int {
 		bangFactor(lines, 7, 1),
 		bangFactor(lines, 1, 2),
 	}
-	fmt.Println(a)
 	prod := 1
 	for _, v := range a {
 		prod *= v
