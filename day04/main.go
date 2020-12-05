@@ -8,33 +8,6 @@ import (
 	"regexp"
 )
 
-// StringSet is intended to store a set of strings
-type StringSet map[string]struct{}
-
-// Add puts an item in the set
-func (s *StringSet) Add(ary ...string) {
-	for _, a := range ary {
-		(*s)[a] = struct{}{}
-	}
-}
-
-// Contains returns whether the value is in the set
-func (s StringSet) Contains(n string) bool {
-	_, ok := s[n]
-	return ok
-}
-
-// Intersect creates a new StringSet that is the intersection of s and t
-func (s StringSet) Intersect(t StringSet) StringSet {
-	result := make(StringSet)
-	for k := range s {
-		if t.Contains(k) {
-			result.Add(k)
-		}
-	}
-	return result
-}
-
 // Passport represents a passport object as described in the problem.
 type Passport map[string]string
 
@@ -42,6 +15,20 @@ type Passport map[string]string
 func (p Passport) ValidationA(requiredKeys StringSet) bool {
 	for key := range requiredKeys {
 		if _, ok := p[key]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// ValidationB validates the rules for partA
+func (p Passport) ValidationB(validators ValidationPartB) bool {
+	for key, f := range validators {
+		value, ok := p[key]
+		if !ok {
+			return false
+		}
+		if !f(value) {
 			return false
 		}
 	}
@@ -86,6 +73,28 @@ func day04a(passports []string) int {
 	return validCount
 }
 
+func day04b(passports []string) int {
+	validators := make(ValidationPartB)
+	validators["byr"] = yearValidatorBuilder(1920, 2002)
+	validators["iyr"] = yearValidatorBuilder(2010, 2020)
+	validators["eyr"] = yearValidatorBuilder(2020, 2030)
+	validators["hgt"] = heightValidator
+	validators["hcl"] = hairValidator
+	validators["ecl"] = eyeValidator
+	validators["pid"] = passportIDValidator
+
+	validCount := 0
+	for _, pp := range passports {
+		passport := make(Passport)
+		passport.ParseFrom(pp)
+		if passport.ValidationB(validators) {
+			validCount++
+		}
+	}
+	return validCount
+
+}
+
 func main() {
 	f, err := os.Open("./input.txt")
 	if err != nil {
@@ -98,4 +107,5 @@ func main() {
 	splitpat := regexp.MustCompile("\n[[:blank:]]*\n")
 	passports := splitpat.Split(string(b), -1)
 	fmt.Printf("%d were valid in part A\n", day04a(passports))
+	fmt.Printf("%d were valid in part B\n", day04b(passports))
 }
