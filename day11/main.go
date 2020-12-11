@@ -28,6 +28,7 @@ type Board struct {
 	grid      [][]Cell
 	gens      int
 	tolerance int
+	visible   bool // visible neighbors or only immediate?
 }
 
 func parseLine(s string) []Cell {
@@ -44,7 +45,7 @@ func parseLine(s string) []Cell {
 }
 
 // NewBoard constructs an empty board.
-func NewBoard(width int, height int, tolerance int) *Board {
+func NewBoard(width int, height int, tolerance int, visible bool) *Board {
 	grid := make([][]Cell, height+2)
 	for i := range grid {
 		grid[i] = make([]Cell, width+2)
@@ -54,13 +55,14 @@ func NewBoard(width int, height int, tolerance int) *Board {
 		height:    height,
 		grid:      grid,
 		tolerance: tolerance,
+		visible:   visible,
 	}
 }
 
 // ParseBoard constructs a board from a slice of strings
 // that describe it.
-func ParseBoard(lines []string, tolerance int) *Board {
-	board := NewBoard(len(lines[0]), len(lines), tolerance)
+func ParseBoard(lines []string, tolerance int, visible bool) *Board {
+	board := NewBoard(len(lines[0]), len(lines), tolerance, visible)
 	for i, line := range lines {
 		board.grid[i+1] = parseLine(line)
 	}
@@ -97,7 +99,7 @@ func (b Board) Hash() string {
 
 // Clone copies a board to a new entity
 func (b Board) Clone() *Board {
-	clone := NewBoard(b.width, b.height, b.tolerance)
+	clone := NewBoard(b.width, b.height, b.tolerance, b.visible)
 	for row := 1; row <= b.height; row++ {
 		copy(clone.grid[row], b.grid[row])
 	}
@@ -108,13 +110,34 @@ func (b Board) Clone() *Board {
 // NeighborCount returns the number of occupied neighbors that are seats
 func (b Board) NeighborCount(row int, col int) int {
 	count := 0
-	for r := row - 1; r <= row+1; r++ {
-		for c := col - 1; c <= col+1; c++ {
-			if r == row && c == col {
-				continue
+	for dr := -1; dr <= 1; dr++ {
+	inner:
+		for dc := -1; dc <= 1; dc++ {
+			if dr == 0 && dc == 0 {
+				continue inner
 			}
-			if b.grid[r][c].IsOccupied {
-				count++
+			r := row + dr
+			c := col + dc
+			if !b.visible {
+				if b.grid[r][c].IsOccupied {
+					count++
+				}
+			} else {
+				sawSeat := false
+				for r > 0 && r <= b.height && c > 0 && c <= b.width {
+					if b.grid[r][c].HasSeat {
+						sawSeat = true
+					}
+					if b.grid[r][c].IsOccupied {
+						count++
+						continue inner
+					}
+					if sawSeat {
+						continue inner
+					}
+					r += dr
+					c += dc
+				}
 			}
 		}
 	}
@@ -166,12 +189,19 @@ func (b *Board) Run() *Board {
 	for lasthash != b.Hash() {
 		lasthash = b.Hash()
 		b = b.Generation()
+		// fmt.Println(b.ToString())
 	}
 	return b
 }
 
 func day11a(lines []string) (int, int) {
-	b := ParseBoard(lines, 4)
+	b := ParseBoard(lines, 4, false)
+	b = b.Run()
+	return b.gens, b.OccupiedSeats()
+}
+
+func day11b(lines []string) (int, int) {
+	b := ParseBoard(lines, 5, true)
 	b = b.Run()
 	return b.gens, b.OccupiedSeats()
 }
@@ -187,5 +217,7 @@ func main() {
 	}
 	lines := strings.Split(string(b), "\n")
 	gens, seats := day11a(lines)
-	fmt.Printf("%d seats were occupied after %d generations", seats, gens)
+	fmt.Printf("A: %d seats were occupied after %d generations\n", seats, gens)
+	gens, seats = day11b(lines)
+	fmt.Printf("B: %d seats were occupied after %d generations\n", seats, gens)
 }
