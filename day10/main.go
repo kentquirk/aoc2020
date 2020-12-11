@@ -101,9 +101,7 @@ func day10b(orig []int) int {
 	groups := divideGroups(data)
 	product := 1
 	for _, group := range groups {
-		// fmt.Println(isValidGroup(group))
 		valids := countValids(group)
-		// fmt.Println(valids)
 		product *= len(valids)
 	}
 	return product
