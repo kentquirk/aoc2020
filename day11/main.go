@@ -23,10 +23,11 @@ type Cell struct {
 // in the grid so that we can index into the grid
 // and calculate neighborhood count without conditionals.
 type Board struct {
-	width  int
-	height int
-	grid   [][]Cell
-	gens   int
+	width     int
+	height    int
+	grid      [][]Cell
+	gens      int
+	tolerance int
 }
 
 func parseLine(s string) []Cell {
@@ -43,22 +44,23 @@ func parseLine(s string) []Cell {
 }
 
 // NewBoard constructs an empty board.
-func NewBoard(width int, height int) *Board {
+func NewBoard(width int, height int, tolerance int) *Board {
 	grid := make([][]Cell, height+2)
 	for i := range grid {
 		grid[i] = make([]Cell, width+2)
 	}
 	return &Board{
-		width:  width,
-		height: height,
-		grid:   grid,
+		width:     width,
+		height:    height,
+		grid:      grid,
+		tolerance: tolerance,
 	}
 }
 
 // ParseBoard constructs a board from a slice of strings
 // that describe it.
-func ParseBoard(lines []string) *Board {
-	board := NewBoard(len(lines[0]), len(lines))
+func ParseBoard(lines []string, tolerance int) *Board {
+	board := NewBoard(len(lines[0]), len(lines), tolerance)
 	for i, line := range lines {
 		board.grid[i+1] = parseLine(line)
 	}
@@ -95,7 +97,7 @@ func (b Board) Hash() string {
 
 // Clone copies a board to a new entity
 func (b Board) Clone() *Board {
-	clone := NewBoard(b.width, b.height)
+	clone := NewBoard(b.width, b.height, b.tolerance)
 	for row := 1; row <= b.height; row++ {
 		copy(clone.grid[row], b.grid[row])
 	}
@@ -136,7 +138,7 @@ func (b *Board) Generation() *Board {
 					next.grid[row][col].IsOccupied = true
 				}
 			} else {
-				if neighbors >= 4 {
+				if neighbors >= b.tolerance {
 					next.grid[row][col].IsOccupied = false
 				}
 			}
@@ -169,7 +171,7 @@ func (b *Board) Run() *Board {
 }
 
 func day11a(lines []string) (int, int) {
-	b := ParseBoard(lines)
+	b := ParseBoard(lines, 4)
 	b = b.Run()
 	return b.gens, b.OccupiedSeats()
 }
