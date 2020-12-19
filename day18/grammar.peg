@@ -1,0 +1,20 @@
+package main
+
+type AoCCalc Peg {
+ Expression
+}
+
+e <- sp e1 !.
+e1 <- e2 ( add e2 { p.AddOperator(TypeAdd) }
+         / multiply e2 { p.AddOperator(TypeMultiply) }
+         )*
+e2 <- minus value { p.AddOperator(TypeNegation) }
+    / value
+value <- < [0-9]+ > sp { p.AddValue(buffer[begin:end]) }
+       / open e1 close
+add <- '+' sp
+minus <- '-' sp
+multiply <- '*' sp
+open <- '(' sp
+close <- ')' sp
+sp <- ( ' ' / '\t' )*
