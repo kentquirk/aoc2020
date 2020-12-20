@@ -1,4 +1,4 @@
-module kentquirk.com/aoc2020/day06
+module github.com/kentquirk/aoc2020/day06
 
 go 1.14
 

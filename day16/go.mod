@@ -1,4 +1,4 @@
-module kentquirk.com/aoc2020/day16
+module github.com/kentquirk/aoc2020/day16
 
 go 1.15
 
