@@ -1,3 +1,3 @@
 module github.com/kentquirk/aoc2020/XXX
 
-go 1.14
+go 1.15
