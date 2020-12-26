@@ -6,7 +6,6 @@ if __name__ == "__main__":
     f = open("./input.txt")
     lines = f.readlines()
     by_food = defaultdict(dict)
-    by_word = defaultdict(set)
     allwords = defaultdict(int)
     for i in range(len(lines)):
         line = lines[i]
@@ -15,13 +14,11 @@ if __name__ == "__main__":
         foods = [f for f in re.split("[^a-z]+", rawfoods) if f != ""]
         for w in words:
             allwords[w] += 1
-            by_word[w].update(foods)
         for f in foods:
             by_food[f][i] = set(words)
 
     # print(f"food: {by_food}")
     # print(f"allwords: {allwords}")
-    # print(f"word: {by_word}")
 
     possibles = dict()
     for food in by_food:
